@@ -1,0 +1,54 @@
+import curses
+import textwrap
+import re
+
+TEXT = r"""
+#cWell we've reached the end of this demo. But #bnot#n the #bREAL END#n because
+
+AA PROJECT is here.
+
+Please read carefully the following document for more information.
+
+*** This IS the FINAL2 version of BB ***
+"""
+
+def clean_text(t):
+    # remove BB/AA tags like #b #c #n #f #l
+    return re.sub(r"#.", "", t)
+
+def main(stdscr):
+    curses.curs_set(0)
+    stdscr.nodelay(False)
+    h, w = stdscr.getmaxyx()
+
+    text = clean_text(TEXT)
+    lines = []
+    for paragraph in text.split("\n"):
+        lines.extend(textwrap.wrap(paragraph, w - 2) or [""])
+
+    pos = 0
+
+    while True:
+        stdscr.clear()
+        for i in range(h - 1):
+            if pos + i < len(lines):
+                stdscr.addstr(i, 0, lines[pos + i])
+
+        stdscr.addstr(
+            h - 1,
+            0,
+            "SPACE/DOWN = forward   UP = back   Q = quit"
+        )
+        stdscr.refresh()
+
+        key = stdscr.getch()
+        if key in (ord('q'), ord('Q')):
+            break
+        elif key in (curses.KEY_DOWN, ord(' ')):
+            if pos < len(lines) - h:
+                pos += 1
+        elif key == curses.KEY_UP:
+            if pos > 0:
+                pos -= 1
+
+curses.wrapper(main)
